@@ -2,3 +2,5 @@ flask==3.0.3
 werkzeug==3.0.3
 flask-WTF==1.0.1
 pytest==7.0.1
+pytest-cov==4.1.0
+allure-pytest==2.13.2

@@ -1,0 +1,176 @@
+name: Automated Testing and Coverage
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Tests with Coverage and Performance Profiling
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-html pytest-json-report pytest-benchmark
+
+    - name: Run pytest with coverage
+      run: |
+        mkdir -p reports/coverage reports/html
+        pytest tests/ -v \
+          --junitxml=reports/junit.xml \
+          --html=reports/html/report.html \
+          --self-contained-html \
+          --json-report \
+          --json-report-file=reports/test-report.json \
+          --cov=. \
+          --cov-report=xml:reports/coverage/coverage.xml \
+          --cov-report=html:reports/coverage/htmlcov \
+          --cov-report=term-missing \
+          --cov-report=json:reports/coverage/coverage.json
+
+    - name: Performance Profiling with cProfile
+      run: |
+        mkdir -p reports/profiling
+        python -m cProfile -o reports/profiling/app_profile.prof -m pytest tests/ -v
+        python -c "import pstats; p = pstats.Stats('reports/profiling/app_profile.prof'); p.sort_stats('cumulative'); p.print_stats(30)" > reports/profiling/profile_results.txt
+      continue-on-error: true
+
+    - name: Generate Coverage Badge
+      if: matrix.python-version == '3.11'
+      run: |
+        coverage=$(python -c "import json; data=json.load(open('reports/coverage/coverage.json')); print(f\"{data['totals']['percent_covered']:.1f}\")")
+        echo "COVERAGE=$coverage" >> $GITHUB_ENV
+        color="red"
+        if (( $(echo "$coverage >= 80" | bc -l) )); then color="green"
+        elif (( $(echo "$coverage >= 60" | bc -l) )); then color="yellow"
+        fi
+        echo "COVERAGE_COLOR=$color" >> $GITHUB_ENV
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-python-${{ matrix.python-version }}
+        path: |
+          reports/
+          .coverage
+        retention-days: 30
+
+    - name: Upload Coverage to Codecov
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v4
+      with:
+        files: reports/coverage/coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Comment Test Results on PR
+      if: github.event_name == 'pull_request' && matrix.python-version == '3.11'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const testReport = JSON.parse(fs.readFileSync('reports/test-report.json', 'utf8'));
+          const coverage = JSON.parse(fs.readFileSync('reports/coverage/coverage.json', 'utf8'));
+
+          const comment = `## 🧪 Test Results
+
+          **Tests Passed:** ${testReport.summary.passed || 0} ✅
+          **Tests Failed:** ${testReport.summary.failed || 0} ❌
+          **Tests Skipped:** ${testReport.summary.skipped || 0} ⏭️
+          **Total Tests:** ${testReport.summary.total || 0}
+
+          **Coverage:** ${coverage.totals.percent_covered.toFixed(2)}% 📊
+          - **Lines Covered:** ${coverage.totals.covered_lines}/${coverage.totals.num_statements}
+          - **Branches Covered:** ${coverage.totals.covered_branches}/${coverage.totals.num_branches}
+
+          **Duration:** ${testReport.summary.duration?.toFixed(2) || 'N/A'}s ⏱️
+          `;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+    - name: Check Test Coverage Threshold
+      if: matrix.python-version == '3.11'
+      run: |
+        coverage=$(python -c "import json; data=json.load(open('reports/coverage/coverage.json')); print(data['totals']['percent_covered'])")
+        echo "Coverage: $coverage%"
+        if (( $(echo "$coverage < 60" | bc -l) )); then
+          echo "❌ Coverage is below 60% threshold"
+          exit 1
+        else
+          echo "✅ Coverage meets 60% threshold"
+        fi
+
+  quality-checks:
+    name: Code Quality and Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install quality tools
+      run: |
+        pip install flake8 bandit safety pylint
+
+    - name: Run Flake8 (Style Check)
+      run: |
+        mkdir -p reports/quality
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics > reports/quality/flake8.txt || true
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics >> reports/quality/flake8.txt || true
+      continue-on-error: true
+
+    - name: Run Bandit (Security Check)
+      run: |
+        bandit -r . -f txt -o reports/quality/bandit.txt || true
+      continue-on-error: true
+
+    - name: Run Safety (Dependency Check)
+      run: |
+        safety check --json > reports/quality/safety.json || true
+      continue-on-error: true
+
+    - name: Upload Quality Reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: quality-reports
+        path: reports/quality/
+        retention-days: 30

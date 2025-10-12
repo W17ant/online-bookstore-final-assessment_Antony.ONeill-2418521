@@ -57,14 +57,22 @@ def index():
 @app.route('/add-to-cart', methods=['POST'])
 def add_to_cart():
     book_title = request.form.get('title')
-    quantity = int(request.form.get('quantity', 1))
-    
+
+    try:
+        quantity = int(request.form.get('quantity', 1))
+        if quantity <= 0:
+            flash('Quantity must be a positive number.', 'error')
+            return redirect(url_for('index'))
+    except ValueError:
+        flash('Invalid quantity. Please enter a number.', 'error')
+        return redirect(url_for('index'))
+
     book = None
     for b in BOOKS:
         if b.title == book_title:
             book = b
             break
-    
+
     if book:
         cart.add_book(book, quantity)
         flash(f'Added {quantity} "{book.title}" to cart!', 'success')
@@ -100,15 +108,20 @@ def update_cart():
         - Confirmation of update otherwise
     """
     book_title = request.form.get('title')
-    quantity = int(request.form.get('quantity', 1))
-    
+
+    try:
+        quantity = int(request.form.get('quantity', 1))
+    except ValueError:
+        flash('Invalid quantity. Please enter a number.', 'error')
+        return redirect(url_for('view_cart'))
+
     cart.update_quantity(book_title, quantity)
-    
+
     if quantity <= 0:
         flash(f'Removed "{book_title}" from cart!', 'success')
     else:
         flash(f'Updated "{book_title}" quantity to {quantity}!', 'success')
-    
+
     return redirect(url_for('view_cart'))
 
 
@@ -159,12 +172,12 @@ def process_checkout():
         'cvv': request.form.get('cvv')
     }
     
-    discount_code = request.form.get('discount_code', '')
-    
+    discount_code = request.form.get('discount_code', '').upper()  # Convert to uppercase for case-insensitive comparison
+
     # Calculate total with discount
     total_amount = cart.get_total_price()
     discount_applied = 0
-    
+
     if discount_code == 'SAVE10':
         discount_applied = total_amount * 0.10
         total_amount -= discount_applied

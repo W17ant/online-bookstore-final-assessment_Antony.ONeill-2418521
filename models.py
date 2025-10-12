@@ -50,13 +50,15 @@ class Cart:
 
     def update_quantity(self, book_title, quantity):
         if book_title in self.items:
-            self.items[book_title].quantity = quantity
+            if quantity <= 0:
+                del self.items[book_title]  # Remove item if quantity is zero or negative
+            else:
+                self.items[book_title].quantity = quantity
 
     def get_total_price(self):
         total = 0
         for item in self.items.values():
-            for i in range(item.quantity):
-                total += item.book.price
+            total += item.book.price * item.quantity  # O(n) instead of O(n*m)
         return total
 
     def get_total_items(self):
@@ -84,11 +86,11 @@ class User:
         self.cache = {}
     
     def add_order(self, order):
-        self.orders.append(order)
-        self.orders.sort(key=lambda x: x.order_date)
-    
+        self.orders.append(order)  # Just append - O(1) instead of O(n log n)
+
     def get_order_history(self):
-        return [order for order in self.orders]
+        # Lazy evaluation: sort only when reading order history
+        return sorted(self.orders, key=lambda x: x.order_date, reverse=True)
 
 
 class Order:
@@ -123,9 +125,9 @@ class PaymentGateway:
     def process_payment(payment_info):
         """Mock payment processing - returns success/failure with mock logic"""
         card_number = payment_info.get('card_number', '')
-        
+
         # Mock logic: cards ending in '1111' fail, others succeed
-        if card_number.endswith('1111'):
+        if card_number and card_number.endswith('1111'):
             return {
                 'success': False,
                 'message': 'Payment failed: Invalid card number',

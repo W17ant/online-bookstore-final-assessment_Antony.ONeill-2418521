@@ -29,6 +29,17 @@
 
     <section class="order-confirmation-section">
         <div class="container">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
             <div class="confirmation-header">
                 <div class="success-icon">✓</div>
                 <h2>Order Confirmed!</h2>

@@ -1,6 +1,24 @@
+# Core Flask Dependencies
 flask==3.0.3
 werkzeug==3.0.3
 flask-WTF==1.0.1
+
+# Testing Framework
 pytest==7.0.1
 pytest-cov==4.1.0
+
+# Test Reporting and Documentation
+pytest-html==4.1.1
+pytest-json-report==1.5.0
 allure-pytest==2.13.2
+
+# Performance Testing and Profiling
+pytest-benchmark==4.0.0
+memory-profiler==0.61.0
+locust==2.31.8
+
+# Code Quality and Security
+flake8==7.0.0
+bandit==1.7.5
+safety==3.0.1
+pylint==3.0.3

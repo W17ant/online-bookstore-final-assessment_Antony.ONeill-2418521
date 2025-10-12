@@ -32,16 +32,29 @@ def sample_books():
 
 
 class TestHomePage:
-    """Test cases for the home page"""
+    """
+    Test cases for the home page
+    Related to: FR-001 - Book Catalog Display
+    """
 
     def test_home_page_loads(self, client):
-        """Test that the home page loads successfully"""
+        """
+        [TC001-01] Test that the home page loads successfully
+
+        Related Requirement: FR-001 - Book Catalog Display
+        Expected Result: Home page renders with 200 status
+        """
         response = client.get('/')
         assert response.status_code == 200
         assert b'Online Bookstore' in response.data
 
     def test_books_displayed(self, client):
-        """Test that books are displayed on home page"""
+        """
+        [TC001-02] Test that books are displayed on home page
+
+        Related Requirement: FR-001 - Book Catalog Display
+        Expected Result: Book-related content visible on homepage
+        """
         response = client.get('/')
         assert response.status_code == 200
         # Check for some book-related content
@@ -49,17 +62,30 @@ class TestHomePage:
 
 
 class TestCart:
-    """Test cases for shopping cart functionality"""
+    """
+    Test cases for shopping cart functionality
+    Related to: FR-002 - Shopping Cart Functionality
+    """
 
     def test_cart_initialization(self):
-        """Test that a new cart initializes correctly"""
+        """
+        [TC002-00] Test that a new cart initializes correctly
+
+        Related Requirement: FR-002 - Shopping Cart Functionality
+        Expected Result: Cart initializes empty with zero total
+        """
         cart = Cart()
         assert cart.items == {}
         assert cart.get_total_price() == 0
         assert cart.is_empty() is True
 
     def test_add_item_to_cart(self, sample_books):
-        """Test adding an item to the cart"""
+        """
+        [TC002-01] Test adding a single item to the cart
+
+        Related Requirement: FR-002 - Shopping Cart Functionality
+        Expected Result: Item added to cart with correct quantity
+        """
         cart = Cart()
         book = sample_books[0]
         cart.add_book(book, 1)
@@ -68,7 +94,13 @@ class TestCart:
         assert cart.items[book.title].quantity == 1
 
     def test_cart_total_calculation(self, sample_books):
-        """Test cart total is calculated correctly"""
+        """
+        [TC002-05] Test cart total is calculated correctly
+
+        Related Requirement: FR-002 - Shopping Cart Functionality
+        Note: Tests KNOWN BUG #4 - Inefficient nested loop O(n*m)
+        Expected Result: Total price calculated correctly
+        """
         cart = Cart()
         book1 = sample_books[0]
         book2 = sample_books[1]
@@ -78,7 +110,12 @@ class TestCart:
         assert cart.get_total_price() == expected_total
 
     def test_remove_item_from_cart(self, sample_books):
-        """Test removing an item from the cart"""
+        """
+        [TC002-07] Test removing an item from the cart
+
+        Related Requirement: FR-002 - Shopping Cart Functionality
+        Expected Result: Item removed from cart successfully
+        """
         cart = Cart()
         book = sample_books[0]
         cart.add_book(book, 1)
@@ -86,7 +123,12 @@ class TestCart:
         assert len(cart.items) == 0
 
     def test_clear_cart(self, sample_books):
-        """Test clearing all items from cart"""
+        """
+        [TC002-08] Test clearing all items from cart
+
+        Related Requirement: FR-002 - Shopping Cart Functionality
+        Expected Result: All items removed, total reset to zero
+        """
         cart = Cart()
         cart.add_book(sample_books[0], 1)
         cart.add_book(sample_books[1], 1)
@@ -96,10 +138,18 @@ class TestCart:
 
 
 class TestBookModel:
-    """Test cases for Book model"""
+    """
+    Test cases for Book model
+    Related to: FR-001 - Book Catalog Display
+    """
 
     def test_book_creation(self):
-        """Test creating a book instance"""
+        """
+        [TC001-04] Test creating a book instance
+
+        Related Requirement: FR-001 - Book Catalog Display
+        Expected Result: Book object created with all attributes
+        """
         book = Book("Test Book", "Test Category", 19.99, "test.jpg")
         assert book.title == "Test Book"
         assert book.category == "Test Category"
@@ -107,7 +157,12 @@ class TestBookModel:
         assert book.image == "test.jpg"
 
     def test_book_attributes(self):
-        """Test book attributes are set correctly"""
+        """
+        [TC001-05] Test book attributes are set correctly
+
+        Related Requirement: FR-001 - Book Catalog Display
+        Expected Result: All book attributes have correct data types
+        """
         book = Book("Python Programming", "Technology", 49.99, "python.jpg")
         assert isinstance(book.title, str)
         assert isinstance(book.category, str)
@@ -116,31 +171,58 @@ class TestBookModel:
 
 
 class TestRoutes:
-    """Test cases for Flask routes"""
+    """
+    Test cases for Flask routes
+    Related to: Multiple FRs (Cart, Auth, Checkout)
+    """
 
     def test_cart_page_loads(self, client):
-        """Test that cart page loads"""
+        """
+        [TC002-04] Test that cart page loads
+
+        Related Requirement: FR-002 - Shopping Cart Functionality
+        Expected Result: Cart page renders successfully
+        """
         response = client.get('/cart')
         assert response.status_code == 200
 
     def test_login_page_loads(self, client):
-        """Test that login page loads"""
+        """
+        [TC006-09] Test that login page loads
+
+        Related Requirement: FR-006 - User Authentication
+        Expected Result: Login page displays with form
+        """
         response = client.get('/login')
         assert response.status_code == 200
         assert b'Login' in response.data
 
     def test_register_page_loads(self, client):
-        """Test that register page loads"""
+        """
+        [TC006-03] Test that register page loads
+
+        Related Requirement: FR-006 - User Authentication
+        Expected Result: Registration page displays with form
+        """
         response = client.get('/register')
         assert response.status_code == 200
         assert b'Register' in response.data
 
 
 class TestEdgeCases:
-    """Test edge cases and potential bugs"""
+    """
+    Test edge cases and potential bugs
+    Related to: FR-002 - Shopping Cart Functionality (Bug Detection)
+    """
 
     def test_add_zero_quantity_to_cart(self, sample_books):
-        """Test adding zero quantity (potential bug)"""
+        """
+        [TC002-09] Test adding zero quantity (KNOWN BUG #1)
+
+        Related Requirement: FR-002 - Shopping Cart Functionality
+        Known Issue: Bug #1 - update_quantity doesn't remove items when qty <= 0
+        Expected Result: Zero quantities should not be allowed or should remove item
+        """
         cart = Cart()
         book = sample_books[0]
         cart.add_book(book, 0)
@@ -149,7 +231,13 @@ class TestEdgeCases:
         assert total_items >= 0
 
     def test_add_negative_quantity_to_cart(self, sample_books):
-        """Test adding negative quantity (potential bug)"""
+        """
+        [TC002-10] Test adding negative quantity (KNOWN BUG #1)
+
+        Related Requirement: FR-002 - Shopping Cart Functionality
+        Known Issue: Bug #1 - No validation for negative quantities
+        Expected Result: Negative quantities should be rejected
+        """
         cart = Cart()
         book = sample_books[0]
         # This should fail or be handled properly
@@ -163,7 +251,12 @@ class TestEdgeCases:
             pass
 
     def test_empty_cart_total(self):
-        """Test that empty cart returns zero total"""
+        """
+        [TC002-11] Test that empty cart returns zero total
+
+        Related Requirement: FR-002 - Shopping Cart Functionality
+        Expected Result: Empty cart has zero total and is_empty() returns True
+        """
         cart = Cart()
         assert cart.get_total_price() == 0
         assert cart.is_empty() is True

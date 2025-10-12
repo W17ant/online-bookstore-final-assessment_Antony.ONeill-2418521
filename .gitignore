@@ -215,8 +215,13 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# Test files and temporary files
-test_*.py
-*_test.py
+# Temporary files (NOT test files - we need those for assessment!)
 temp/
 tmp/
+
+# Archived Jenkins setup (switched to GitHub Actions)
+archived-jenkins/
+
+# Test reports (generated during CI/CD)
+reports/
+htmlcov/

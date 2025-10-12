@@ -1,0 +1,151 @@
+name: Performance Testing and Profiling
+
+on:
+  push:
+    branches: [ main, master ]
+  schedule:
+    # Run weekly on Sundays at 00:00 UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+jobs:
+  performance:
+    name: Performance Analysis with timeit and cProfile
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-benchmark memory-profiler
+
+    - name: Run Performance Benchmarks
+      run: |
+        mkdir -p reports/performance
+        python tests/test_performance.py 2>&1 | tee reports/performance/timeit_results.txt
+
+    - name: Run cProfile on Critical Functions
+      run: |
+        python -m cProfile -o reports/performance/models_profile.prof -m pytest tests/ -k "test_cart" -v
+        python -c "
+        import pstats
+        from pstats import SortKey
+
+        p = pstats.Stats('reports/performance/models_profile.prof')
+
+        with open('reports/performance/cprofile_results.txt', 'w') as f:
+            import sys
+            sys.stdout = f
+            print('=' * 80)
+            print('PERFORMANCE PROFILE - Sorted by Cumulative Time')
+            print('=' * 80)
+            p.sort_stats(SortKey.CUMULATIVE)
+            p.print_stats(50)
+
+            print('\n' + '=' * 80)
+            print('PERFORMANCE PROFILE - Sorted by Total Time')
+            print('=' * 80)
+            p.sort_stats(SortKey.TIME)
+            p.print_stats(50)
+
+            print('\n' + '=' * 80)
+            print('CALLER/CALLEE RELATIONSHIPS')
+            print('=' * 80)
+            p.print_callers(20)
+            sys.stdout = sys.__stdout__
+        "
+
+    - name: Memory Profiling
+      run: |
+        python -m memory_profiler tests/test_performance.py > reports/performance/memory_profile.txt || true
+      continue-on-error: true
+
+    - name: Generate Performance Summary
+      run: |
+        python -c "
+        import os
+
+        summary = '''
+        # Performance Testing Summary
+
+        ## Test Execution
+        - **Date**: $(date)
+        - **Platform**: Ubuntu Latest (GitHub Actions)
+        - **Python Version**: 3.11
+
+        ## Reports Generated
+        1. **timeit Results**: Performance measurements using Python's timeit module
+        2. **cProfile Results**: Detailed function-level profiling
+        3. **Memory Profile**: Memory usage analysis
+
+        ## Key Metrics to Review
+        - Function execution times (look for functions taking >100ms)
+        - Number of function calls (look for unnecessary repeated calls)
+        - Memory allocations (look for memory leaks or excessive usage)
+
+        ## Performance Optimization Targets
+        - Cart total calculation: Should be O(n) not O(n*m)
+        - User order sorting: Should happen on-demand, not on every add
+        - Book lookups: Should use existing helper functions
+
+        See detailed reports in the artifacts for full analysis.
+        '''
+
+        with open('reports/performance/SUMMARY.md', 'w') as f:
+            f.write(summary)
+        "
+
+    - name: Upload Performance Reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-reports
+        path: reports/performance/
+        retention-days: 90
+
+    - name: Comment Performance Results on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+
+          let timeitResults = '';
+          try {
+            timeitResults = fs.readFileSync('reports/performance/timeit_results.txt', 'utf8');
+          } catch (e) {
+            timeitResults = 'No timeit results available';
+          }
+
+          const comment = `## ⚡ Performance Testing Results
+
+          ### Execution Time Analysis
+          \`\`\`
+          ${timeitResults.slice(0, 1000)}
+          \`\`\`
+
+          📊 **Full performance reports** available in workflow artifacts.
+
+          ### Key Areas to Review:
+          - Cart operations performance
+          - User order management efficiency
+          - Database query optimization opportunities
+
+          Download the artifacts for detailed cProfile analysis.
+          `;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

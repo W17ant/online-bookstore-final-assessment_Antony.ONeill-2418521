@@ -45,7 +45,17 @@ python tests/test_performance.py
 
 ### **Priority 2: Highly Recommended**
 
-#### 4. `locust_statistics.png`
+#### 4. `bandit_security_scan.png`
+**What to capture:** Terminal output of security scan
+**Command:**
+```bash
+bandit -r . -ll --exclude ./venv,./tests,./.github
+```
+**Shows:** 1 HIGH + 11 LOW severity issues, professional security awareness
+
+---
+
+#### 5. `locust_statistics.png`
 **What to capture:** Locust Statistics tab
 **Steps:**
 1. Terminal 1: `python app.py`
@@ -59,7 +69,7 @@ python tests/test_performance.py
 
 ---
 
-#### 5. `locust_charts.png`
+#### 6. `locust_charts.png`
 **What to capture:** Locust Charts tab
 **Shows:** Visual graphs of RPS and response times over time
 
@@ -68,11 +78,12 @@ python tests/test_performance.py
 ## 📝 Screenshot Checklist
 
 Before pushing to GitHub:
-- [ ] test_results.png (86/86 passing)
-- [ ] coverage_report.png (85% coverage)
-- [ ] timeit_performance.png (O(n*m)→O(n) proof)
-- [ ] locust_statistics.png (load testing metrics)
-- [ ] locust_charts.png (performance graphs)
+- [ ] test_results.png (86/86 passing) - **MUST HAVE**
+- [ ] coverage_report.png (85% coverage) - **MUST HAVE**
+- [ ] timeit_performance.png (O(n*m)→O(n) proof) - **MUST HAVE**
+- [ ] bandit_security_scan.png (security testing) - **RECOMMENDED**
+- [ ] locust_statistics.png (load testing metrics) - **RECOMMENDED**
+- [ ] locust_charts.png (performance graphs) - **RECOMMENDED**
 
 ---
 
@@ -88,13 +99,14 @@ Before pushing to GitHub:
 
 ## 📊 What Each Screenshot Proves
 
-| Screenshot | Proves | Report Section |
-|-----------|--------|----------------|
-| test_results.png | 100% test pass rate | Section 2 & 4 |
-| coverage_report.png | 85% code coverage | Section 4 |
-| timeit_performance.png | Algorithmic optimization | Section 3 |
-| locust_statistics.png | Load testing results | Section 3 |
-| locust_charts.png | Performance under load | Section 3 |
+| Screenshot | Proves | Report Section | Priority |
+|-----------|--------|----------------|----------|
+| test_results.png | 100% test pass rate | Section 2 & 4 | ⭐⭐⭐ Must Have |
+| coverage_report.png | 85% code coverage | Section 4 | ⭐⭐⭐ Must Have |
+| timeit_performance.png | Algorithmic optimization | Section 3 | ⭐⭐⭐ Must Have |
+| bandit_security_scan.png | Security awareness | Section 2 or 4 | ⭐⭐ Recommended |
+| locust_statistics.png | Load testing results | Section 3 | ⭐⭐ Recommended |
+| locust_charts.png | Performance under load | Section 3 | ⭐⭐ Recommended |
 
 ---
 

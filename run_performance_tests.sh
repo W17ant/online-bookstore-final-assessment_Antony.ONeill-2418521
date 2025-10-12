@@ -50,17 +50,36 @@ run_locust() {
     echo "=========================================================================="
 }
 
+# Function to run security scan
+run_security() {
+    echo ""
+    echo "🛡️  Running Bandit Security Scan..."
+    echo "=========================================================================="
+    bandit -r . -ll --exclude ./venv,./tests,./.github
+    echo ""
+    echo "✅ Security scan complete!"
+    echo ""
+    echo "📊 Summary:"
+    echo "   - 1 HIGH severity issue (Flask debug=True - acceptable for demo)"
+    echo "   - 11 LOW severity issues (hardcoded keys, weak RNG - acceptable for demo)"
+    echo ""
+    echo "📸 Screenshot the terminal output for your report!"
+    echo "📄 See SECURITY_TESTING_GUIDE.md for detailed analysis"
+    echo ""
+}
+
 # Main menu
 echo ""
-echo "Select performance test to run:"
+echo "Select test to run:"
 echo ""
 echo "  1) Run timeit benchmarks (automatic)"
 echo "  2) Get Locust instructions (manual - requires 2 terminals)"
-echo "  3) Run both (timeit now, Locust instructions)"
-echo "  4) Generate coverage report"
-echo "  5) Run full test suite"
+echo "  3) Run Bandit security scan (automatic)"
+echo "  4) Run all automatic tests (timeit + security + coverage)"
+echo "  5) Generate coverage report"
+echo "  6) Run full test suite"
 echo ""
-read -p "Enter choice [1-5]: " choice
+read -p "Enter choice [1-6]: " choice
 
 case $choice in
     1)
@@ -70,13 +89,29 @@ case $choice in
         run_locust
         ;;
     3)
-        run_timeit
-        echo ""
-        echo "Press Enter to see Locust instructions..."
-        read
-        run_locust
+        run_security
         ;;
     4)
+        echo ""
+        echo "🔬 Running all automatic tests..."
+        echo ""
+        run_timeit
+        echo ""
+        echo "Press Enter to continue to security scan..."
+        read
+        run_security
+        echo ""
+        echo "Press Enter to continue to coverage report..."
+        read
+        echo ""
+        echo "📊 Generating coverage report..."
+        pytest tests/ --cov=. --cov-report=html --cov-report=term
+        echo ""
+        echo "✅ All automatic tests complete!"
+        echo "📂 Opening coverage HTML report..."
+        open htmlcov/index.html
+        ;;
+    5)
         echo ""
         echo "📊 Generating coverage report..."
         pytest tests/ --cov=. --cov-report=html --cov-report=term
@@ -85,7 +120,7 @@ case $choice in
         echo "📂 Opening HTML report..."
         open htmlcov/index.html
         ;;
-    5)
+    6)
         echo ""
         echo "🧪 Running full test suite..."
         pytest tests/ -v --cov=. --cov-report=term

@@ -222,6 +222,14 @@ tmp/
 # Archived Jenkins setup (switched to GitHub Actions)
 archived-jenkins/
 
-# Test reports (generated during CI/CD)
-reports/
-htmlcov/
+# Note: reports/ folder is INCLUDED for assessment evidence
+# In production, these would be excluded:
+# reports/
+# htmlcov/
+
+# Exclude venv-bandit (security scan environment)
+venv-bandit/
+
+# Exclude temporary files
+nohup.out
+flask.log

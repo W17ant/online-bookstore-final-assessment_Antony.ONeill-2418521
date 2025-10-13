@@ -1,0 +1,140 @@
+Run started:2025-10-12 16:48:50.791596
+
+Test results:
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'your_secret_key'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b105_hardcoded_password_string.html
+   Location: ./app.py:6:17
+5	app = Flask(__name__)
+6	app.secret_key = 'your_secret_key'  # Required for session management
+7	
+
+--------------------------------------------------
+>> Issue: [B201:flask_debug_true] A Flask app appears to be run with debug=True, which exposes the Werkzeug debugger and allows the execution of arbitrary code.
+   Severity: High   Confidence: Medium
+   CWE: CWE-94 (https://cwe.mitre.org/data/definitions/94.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b201_flask_debug_true.html
+   Location: ./app.py:343:4
+342	if __name__ == '__main__':
+343	    app.run(debug=True)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: ./locustfile.py:50:18
+49	        # Register a unique user for this load test
+50	        user_id = random.randint(1000, 9999)
+51	        self.email = f"loadtest{user_id}@example.com"
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'TestPass123!'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b105_hardcoded_password_string.html
+   Location: ./locustfile.py:52:24
+51	        self.email = f"loadtest{user_id}@example.com"
+52	        self.password = "TestPass123!"
+53	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: ./locustfile.py:84:15
+83	        """
+84	        book = random.choice(self.books)
+85	        quantity = random.randint(1, 10)  # Test with varying quantities
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: ./locustfile.py:85:19
+84	        book = random.choice(self.books)
+85	        quantity = random.randint(1, 10)  # Test with varying quantities
+86	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: ./locustfile.py:111:15
+110	        """
+111	        book = random.choice(self.books)
+112	        new_quantity = random.randint(1, 20)  # Test with larger quantities
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: ./locustfile.py:112:23
+111	        book = random.choice(self.books)
+112	        new_quantity = random.randint(1, 20)  # Test with larger quantities
+113	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: ./locustfile.py:128:15
+127	        # First, make sure cart has items
+128	        book = random.choice(self.books)
+129	        self.client.post("/add-to-cart", data={"title": book, "quantity": 2})
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: ./locustfile.py:135:19
+134	        # Test discount codes (case-insensitive fix)
+135	        discount = random.choice(["SAVE10", "save10", "WELCOME20", ""])
+136	
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: ./locustfile.py:209:4
+208	if __name__ == "__main__":
+209	    import subprocess
+210	    print("=" * 80)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: ./models.py:143:31
+142	        
+143	        transaction_id = f"TXN{random.randint(100000, 999999)}"
+144	        
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 556
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 11
+		Medium: 0
+		High: 1
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 3
+		High: 9
+Files skipped (0):
